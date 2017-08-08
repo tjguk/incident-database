@@ -1,0 +1,164 @@
+Return-Path: <sdavis@thecedarsschool.org.uk>
+X-Original-To: tgolden@mailbox14.webfaction.com
+Delivered-To: tgolden@mailbox14.webfaction.com
+Received: from mx7.webfaction.com (mail7.webfaction.com [185.20.49.162])
+	by mailbox14.webfaction.com (Postfix) with ESMTP id BAF2E522AE7
+	for <tgolden@mailbox14.webfaction.com>; Wed,  2 Aug 2017 21:17:19 +0000 (UTC)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mx7.webfaction.com (Postfix) with ESMTP id 5D277200E5DA8
+	for <tgolden@mailbox14.webfaction.com>; Wed,  2 Aug 2017 21:17:19 +0000 (UTC)
+X-Spam-Flag: NO
+X-Spam-Score: -2.8
+X-Spam-Level:
+X-Spam-Status: No, score=-2.8 tagged_above=-999 required=3
+	tests=[RCVD_IN_DNSWL_NONE=-0.0001, RCVD_IN_MSPIKE_H2=-2.8,
+	SPF_HELO_PASS=-0.001, URIBL_BLOCKED=0.001]
+	autolearn=unavailable autolearn_force=no
+Received: from mx7.webfaction.com ([127.0.0.1])
+	by localhost (mail7.webfaction.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 8OEf41yYmin0 for <tgolden@mailbox14.webfaction.com>;
+	Wed,  2 Aug 2017 21:17:16 +0000 (UTC)
+Received: from mail1.bemta3.messagelabs.com (mail1.bemta3.messagelabs.com [195.245.230.165])
+	by mx7.webfaction.com (Postfix) with ESMTPS id 3450E200E5DA4
+	for <mail@timgolden.me.uk>; Wed,  2 Aug 2017 21:17:16 +0000 (UTC)
+Received: from [85.158.137.99] by server-5.bemta-3.messagelabs.com id B6/57-02181-B5142895; Wed, 02 Aug 2017 21:17:15 +0000
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFnrMIsWRWlGSWpSXmKPExsUSeW7Zbt1ox6Z
+  IgwObVC3mr/zE7sDo8fTlKeYAxijWzLyk/IoE1ozp85+zFuyRrTh8YB5bA+NFiS5GLg4hgS2M
+  EvMOdLJ3MXJwsAm4S5x4UwZiigioSvzoiO9i5ORgFvCW+LVqISuILSwgJXHtzTdmEFtEQFri8
+  q7zrBC2lcS3+31gNouAisSKvXfZQGxeoIlLDh4Es4UE6iReNvQxgdicAs4Sxz8uAbMZBcQkvp
+  9awwSxS1zi1pP5YLaEgIDEkj3nmSFsUYmXj/+xgpwmIaAoseVvJkS5gcT7c/OZIWxtiWULXzN
+  DrBWUODnzCcsERuFZSKbOQtIyC0nLLCQtCxhZVjFqFKcWlaUW6RqZ6yUVZaZnlOQmZuboGhoY
+  6+WmFhcnpqfmJCYV6yXn525iBAZ+PQMD4w7Glr1+hxglOZiURHkVe+ojhfiS8lMqMxKLM+KLS
+  nNSiw8xynBwKEnwJjo0RQoJFqWmp1akZeYAYxAmLcHBoyTCmwaS5i0uSMwtzkyHSJ1iVJQS59
+  UFSQiAJDJK8+DaYHF/iVFWSpiXkYGBQYinILUoN7MEVf4VozgHo5Iwbx7IFJ7MvBK46a+AFjM
+  BLf5T1wiyuCQRISXVwJi11ErBeHWZ1TruaVZlQiuXMdoYKcyxzN/w5dIuNq5rTIzqW+XNXR/2
+  CezYLiWkUFRm/+bdg4S5nzlv3dzYvCNpRfvyI3xSjfWFm332++5hfV3LZKjrcevZyz1953me2
+  c5j8ms7VmDAqyom+dhRcwlr4yl9XU9NvpKSt5ncRfa5YnEdGQrZSizFGYmGWsxFxYkAAA3pxf
+  YCAAA=
+X-Env-Sender: sdavis@thecedarsschool.org.uk
+X-Msg-Ref: server-3.tower-217.messagelabs.com!1501708635!94037075!1
+X-Originating-IP: [89.206.166.187]
+X-StarScan-Received:
+X-StarScan-Version: 9.4.25; banners=-,-,-
+X-VirusChecked: Checked
+Received: (qmail 19729 invoked from network); 2 Aug 2017 21:17:15 -0000
+Received: from smtp.email.star.co.uk (HELO smtp.email.star.co.uk) (89.206.166.187)
+  by server-3.tower-217.messagelabs.com with DHE-RSA-AES256-SHA encrypted SMTP; 2 Aug 2017 21:17:15 -0000
+Received: from SSP-MB08.SSP.local ([fe80::906b:6306:b40e:a349]) by
+ SSP-HT04.SSP.local ([fe80::a149:6710:8b94:b450%16]) with mapi id
+ 14.03.0248.002; Wed, 2 Aug 2017 22:17:15 +0100
+From: Stephen Davis - The Cedars School <sdavis@thecedarsschool.org.uk>
+To: Tim Golden <mail@timgolden.me.uk>
+CC: Charlie Strinati - The Cedars School <cstrinati@thecedarsschool.org.uk>
+Subject: RE: Database Help
+Thread-Topic: Database Help
+Thread-Index: AdMLhFKbJ2D8CQV8T9Kkv4WaQWGg/wAIPTUAAAs6554=
+Date: Wed, 2 Aug 2017 21:17:14 +0000
+Message-ID: <4E1C47A80D2CA54A9F282E7DF184FED6C7C790@SSP-MB08.SSP.local>
+References: <4E1C47A80D2CA54A9F282E7DF184FED6C7C73C@SSP-MB08.SSP.local>,<7288ea07-7533-ec3a-2114-b758b1488762@timgolden.me.uk>
+In-Reply-To: <7288ea07-7533-ec3a-2114-b758b1488762@timgolden.me.uk>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-originating-ip: [86.154.202.53]
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Dear Tim,=0A=
+=0A=
+Yes it was me that rang, thanks for ringing back. =0A=
+=0A=
+We need to record all incidents in the school with regard to bullying, raci=
+st incidents, disruptive behaviour etc. Ideally we'd be able to populate va=
+rious fields to do with the incident through a web page front end - date, t=
+ype, description, action, open/closed, follow up needed etc. We need to be =
+able to upload attach PDF documents to attach to each incident. Ideally we =
+would be able to attach multiple pupils to incidents rather than have to re=
+duce duplication. The ability to go back into the record and amend the inci=
+dent after its creation would be needed too. =0A=
+=0A=
+That would be our statutory responsibility but we would like to be able to =
+export incidents for individual pupils, year groups and all incidents betwe=
+en certain dates. Also to be able to export all the open, closed, follow up=
+ needed, incomplete incidents etc would be ideal.=0A=
+=0A=
+This would enable us to use the data that is collect usefully rather than j=
+ust pile the paper up in the corner of a room in case an inspector comes.=
+=0A=
+=0A=
+There are about 175 pupils in school this coming year and looking to the fu=
+ture I can't see us ever being over 400 pupils any time soon.=0A=
+=0A=
+Do you think that this is possible and not too time consuming for someone t=
+o undertake?=0A=
+=0A=
+I hope the annual course is going well - I think Chris Doran is up there wi=
+th you - say hi from me.=0A=
+=0A=
+Best wishes,=0A=
+=0A=
+Stephen =0A=
+=0A=
+________________________________________=0A=
+From: Tim Golden [mail@timgolden.me.uk]=0A=
+Sent: Wednesday, August 02, 2017 5:37 PM=0A=
+To: Stephen Davis - The Cedars School=0A=
+Cc: Charlie Strinati - The Cedars School=0A=
+Subject: Re: Database Help=0A=
+=0A=
+Hello Stephen,=0A=
+=0A=
+Obviously you were behind the missed call I had from the Cedars earlier=0A=
+today. I rang back, but the receptionist didn't know who'd called.=0A=
+=0A=
+Happy to help if I can. Can you give me some idea about the requirements=0A=
+-- both the statutory ones and what the school would like -- so I know=0A=
+what to advise? I'm up in Thornycroft at the moment (in Cheshire) so not=0A=
+easy to meet in person, but feel free to email and/or we can try=0A=
+Skype/Hangouts etc.=0A=
+=0A=
+TJG=0A=
+=0A=
+On 02/08/17 13:57, Stephen Davis - The Cedars School wrote:=0A=
+> Dear Tim,=0A=
+>=0A=
+> Charlie Strinati has passed on your details as someone who might be able=
+=0A=
+> to help me with a database that we need here at The Cedars.=0A=
+>=0A=
+> As part of the pastoral structure of the school we are required by=0A=
+> OFSTED to record all incidents within the school. Currently we do this=0A=
+> on paper and whilst we are doing what is required, it doesn=92t allow us=
+=0A=
+> to use the information in a useful way for the school. I thought that a=
+=0A=
+> small database might be the solution and I wondered if you could help at=
+=0A=
+> all?=0A=
+>=0A=
+> Best wishes,=0A=
+>=0A=
+> Stephen=0A=
+>=0A=
+>=0A=
+> 07913908687=0A=
+>=0A=
+> *STEPHEN DAVIS *|  HEAD OF UPPER SCHOOL=0A=
+>=0A=
+> CED-C-RGB.png <http://www.thecedarsschool.org.uk/>=0A=
+>=0A=
+> *THE CEDARS SCHOOL *|**COOMBE ROAD | LLOYD PARK | CROYDON | CR0 5RD**=0A=
+>=0A=
+> *T:*  020 8185 7770** |*E:* sdavis@thecedarsschool.org.uk | *W:=0A=
+> *www.thecedarsschool.org.uk <http://www.thecedarsschool.org.uk/>=0A=
+>=0A=
+=0A=
+=0A=
+________________________________________________________________________=0A=
+This e-mail has been scanned for all viruses by Claranet. The=0A=
+service is powered by MessageLabs. For more information on a proactive=0A=
+anti-virus service working around the clock, around the globe, visit:=0A=
+http://www.claranet.co.uk=0A=
+________________________________________________________________________=0A=
