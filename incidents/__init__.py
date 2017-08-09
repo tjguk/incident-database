@@ -1,8 +1,9 @@
-from flask import Flask
+from flask import Flask, redirect
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///incidents.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 class Model(object):
@@ -78,3 +79,28 @@ class Pupil(Model, db.Model):
 
     def identifier(self):
         return self.name
+
+@app.route("/")
+def index():
+    return redirect("/incidents")
+
+@app.route("/incidents", methods=["GET"])
+def incidents():
+    return "Incidents"
+
+@app.route("/incidents", methods=["POST"])
+def create_incident():
+    return "Incident created"
+
+@app.route("/incident/<incident_id>", methods=["GET"])
+def show_incident(incident_id):
+    raise NotImplementedError
+
+@app.route("/incident/<incident_id>/edit", methods=["GET"])
+def edit_incident(incident_id=None):
+    raise NotImplementedError
+
+@app.route("/pupils", methods=["GET"])
+def pupils():
+    return "Pupils"
+
