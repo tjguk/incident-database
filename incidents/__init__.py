@@ -1,4 +1,7 @@
-from flask import Flask, redirect
+import os, sys
+import datetime
+
+from flask import Flask, redirect, render_template
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -20,13 +23,17 @@ class Incident(Model, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     one_liner = db.Column(db.Text)
     description = db.Column(db.Text)
+    logged_on = db.Column(db.Date)
+    status = db.Column(db.Text)
     action_taken = db.Column(db.Text)
     attachments = db.relationship("Attachment", backref="incident")
 
-    def __init__(self, one_liner, description, attachments=[]):
+    def __init__(self, one_liner, description, attachments=[], logged_on=None):
         self.one_liner = one_liner
         self.description = description
         self.attachments = attachments
+        self.logged_on = logged_on or datetime.date.today()
+        self.status = "Open"
 
     def identifier(self):
         return "INC-%04d" % self.id
@@ -36,10 +43,13 @@ class Attachment(Model, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.Text)
+    data = db.Column(db.Binary)
     incident_id = db.Column(db.Integer, db.ForeignKey("incidents.id"))
 
     def __init__(self, filepath):
-        self.filename = filepath
+        with open(filepath, "rb") as f:
+            self.data = f.read()
+        self.filename = os.path.basename(filepath)
 
 incident_pupils = db.Table(
     "incident_pupils",
@@ -56,6 +66,9 @@ class Pupil(Model, db.Model):
 
     def __init__(self, name):
         self.name = name
+
+    def __hash__(self):
+        return hash(self.name)
 
     def __eq__(self, other):
         return self.name == other.name
@@ -86,7 +99,8 @@ def index():
 
 @app.route("/incidents", methods=["GET"])
 def incidents():
-    return "Incidents"
+    incidents = Incident.query.all()
+    return render_template("incidents.html", incidents=Incident.query.all())
 
 @app.route("/incidents", methods=["POST"])
 def create_incident():

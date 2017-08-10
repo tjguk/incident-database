@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block body %}
+<table class="datatable display" id="incidents">
+    <thead>
+        <tr>
+            <td>Incident</td>
+            <td>Pupils</td>
+            <td>Summary</td>
+            <td>Reported On</td>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <td>Incident</td>
+            <td>Pupils</td>
+            <td>Summary</td>
+            <td>Reported On</td>
+        </tr>
+    </tfoot>
+    <tbody>
+        {% for incident in incidents %}<tr>
+        <td><a href="/incident/{{incident.id}}">{{incident.identifier()}}</a></td>
+        <td>{% for pupil in incident.pupils %}{{pupil.name}}<br/>{% endfor %}</td>
+        <td>{{incident.one_liner}}</td>
+        <td>{{incident.logged_on}}
+        </tr>{% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

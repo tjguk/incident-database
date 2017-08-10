@@ -1,0 +1,8 @@
+{% macro select(name, values, current_value) %}
+<select name="{{name}}" id="{{name}}" >
+  {% for code, display in values %}
+  <option value="{{code}}" {{'SELECTED' if code == current_value}}>{{display}}</option>
+  {% endfor %}
+</select>
+{% endmacro %}
+
