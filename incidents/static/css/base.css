@@ -1,0 +1,9 @@
+html {
+	font-family : sans-serif;
+}
+table {
+	width : 100%;
+}
+thead, tfoot {
+	font-weight : bold;
+}

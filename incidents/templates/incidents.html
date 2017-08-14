@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block head %}
+<link href="/static/css/incidents.css" rel="stylesheet" type="text/css">
+{% endblock %}
+
 {% block body %}
 <table class="datatable display" id="incidents">
     <thead>
@@ -19,7 +23,7 @@
         </tr>
     </tfoot>
     <tbody>
-        {% for incident in incidents %}<tr>
+        {% for incident in incidents %}<tr class="status-{{incident.status | lower}}">
         <td><a href="/incident/{{incident.id}}">{{incident.identifier()}}</a></td>
         <td>{% for pupil in incident.pupils %}{{pupil.name}}<br/>{% endfor %}</td>
         <td>{{incident.one_liner}}</td>

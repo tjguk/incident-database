@@ -17,14 +17,32 @@ class Model(object):
     def identifier(self):
         return self.id
 
+class IncidentStatus(Model, db.Model):
+    __tablename__ = "incident_status"
+
+    status = db.Column(db.Text, primary_key=True)
+    sequence = db.Column(db.Integer)
+
+    def __init__(self, status, sequence):
+        self.status = status
+        self.sequence = sequence
+
+    def identifier(self):
+        return self.status
+
 class Incident(Model, db.Model):
     __tablename__ = 'incidents'
 
     id = db.Column(db.Integer, primary_key=True)
     one_liner = db.Column(db.Text)
     description = db.Column(db.Text)
+    is_incident = db.Column(db.Boolean)
+    is_racial = db.Column(db.Boolean)
+    is_bullying = db.Column(db.Boolean)
+    is_concern = db.Column(db.Boolean)
+    other_type = db.Column(db.Text)
     logged_on = db.Column(db.Date)
-    status = db.Column(db.Text)
+    status = db.Column(db.Text, db.ForeignKey("incident_status.status"))
     action_taken = db.Column(db.Text)
     attachments = db.relationship("Attachment", backref="incident")
 
@@ -37,6 +55,13 @@ class Incident(Model, db.Model):
 
     def identifier(self):
         return "INC-%04d" % self.id
+
+    def types(self):
+        if self.is_incident: yield "Incident"
+        if self.is_racial: yield "Racial"
+        if self.is_bullying: yield "Bullying"
+        if self.is_concern: yield "Concern"
+        if self.other_type: yield self.other_type
 
 class Attachment(Model, db.Model):
     __tablename__ = "attachments"
@@ -100,21 +125,39 @@ def index():
 @app.route("/incidents", methods=["GET"])
 def incidents():
     incidents = Incident.query.all()
-    return render_template("incidents.html", incidents=Incident.query.all())
-
-@app.route("/incidents", methods=["POST"])
-def create_incident():
-    return "Incident created"
+    return render_template("incidents.html", title="Incidents", incidents=Incident.query.all())
 
 @app.route("/incident/<incident_id>", methods=["GET"])
 def show_incident(incident_id):
-    raise NotImplementedError
+    incident = Incident.query.get(incident_id)
+    return render_template("show_incident.html", title="Incident %s" % incident.identifier(), incident=incident)
 
-@app.route("/incident/<incident_id>/edit", methods=["GET"])
-def edit_incident(incident_id=None):
-    raise NotImplementedError
+#~ @app.route("/incidents/new", methods=["GET"])
+#~ def new_incident():
+    #~ return render_template("edit_incident.html")
 
-@app.route("/pupils", methods=["GET"])
-def pupils():
-    return "Pupils"
+#~ @app.route("/incidents", methods=["POST"])
+#~ def create_incident():
+    #~ raise NotImplementedError
+
+#~ @app.route("/incident/<incident_id>", methods=["GET"])
+#~ def show_incident(incident_id):
+    #~ incident = Incident.query.get(incident_id)
+    #~ return render_template("edit_incident", incident=incident)
+
+#~ @app.route("/incident/<incident_id>/edit", methods=["GET"])
+#~ def edit_incident(incident_id):
+    #~ raise NotImplementedError
+
+#~ @app.route("/incident/<incident_id>", methods=["POST", "PUT"])
+#~ def update_incident(incident_id):
+    #~ if request.method == "POST" and request.args.get("_method", "").upper() == "PUT":
+        #~ request.method = "PUT"
+    #~ else:
+        #~ raise MethodNotAllowed(["PUT"])
+    #~ raise NotImplementedError
+
+#~ @app.route("/pupils", methods=["GET"])
+#~ def pupils():
+    #~ return "Pupils"
 

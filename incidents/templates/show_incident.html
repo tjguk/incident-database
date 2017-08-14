@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link href="/static/css/incident.css" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+<p>{{incident.logged_on}}</p>
+<p>{{incident.one_liner}}</p>
+
+<p><b>Incident Types:</b>&nbsp;
+{% for incident_type in incident.types() %}
+{{incident_type}} {% if not loop.last %}&middot;{% endif %}
+{% endfor %}
+</ul>
+
+<h2>Pupils involved</h2>
+<ul>
+{% for pupil in incident.pupils %}
+<li>{{pupil.name}}</li>
+{% endfor %}
+</ul>
+
+<h2>Summary</h2>
+<p>{{incident.description}}</p>
+<h3>Statements:</h3>
+{% if incident.statements %}
+<ul>
+{% for statement in incident.attachments %}
+<li>statement.filename</li>
+{% endfor %}
+</ul>
+{% else %}
+<p><i>No statements included</i></p>
+{% endif %}
+
+<h2>Action taken</h2>
+{% if incident.action_taken %}
+<p>{{incident.action_taken}}</p>
+{% else %}
+<p><i>No action taken</i></p>
+{% endif %}
+
+{% endblock %}

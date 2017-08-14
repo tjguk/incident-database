@@ -1,11 +1,17 @@
 <!doctype html>
 <head>
+<title>{{title}}</title>
+<link href="/static/css/base.css" rel="stylesheet" type="text/css">
+{% block head %}
+{% endblock %}
 </head>
 
 <body>
+<h1>{{title}}</h1>
 {% block header %}
 <!-- header -->
 {% endblock %}
+
 {% block body %}
 {% endblock %}
 
