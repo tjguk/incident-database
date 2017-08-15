@@ -1,0 +1,34 @@
+/*
+Try to ensure that all labels / fields line up
+nicely within a form, possibly within a div
+*/
+label, span.label {
+  font-weight : bold;
+  margin-right : 0.25em;
+}
+form div {
+  width : 100%;
+  padding : 0;
+  margin : 0;
+}
+form p {
+  clear : both;
+}
+form fieldset {
+  border : thin solid black;
+  padding : 0.5em;
+}
+form fieldset legend {
+  padding : 0 0.5em;
+}
+form p label, form p span.label, form fieldset {
+  font-size : 84%;
+}
+form p select, form p input {
+  font-size : 72%;
+}
+form input.datestamp,
+form input.timestamp,
+form input.datetimestamp {
+  text-align : center;
+}

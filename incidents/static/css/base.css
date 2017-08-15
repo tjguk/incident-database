@@ -7,3 +7,23 @@ table {
 thead, tfoot {
 	font-weight : bold;
 }
+
+div.half {
+  width : 49%;
+}
+div.one-third {
+  width : 32%;
+}
+div.two-thirds {
+  width : 65%;
+}
+
+div.left {
+  float : left;
+}
+div.right {
+  float : right;
+}
+hr {
+  clear : both;
+}

@@ -1,7 +1,8 @@
 import os, sys
 import datetime
+import io
 
-from flask import Flask, redirect, render_template
+from flask import Flask, redirect, render_template, send_file, request, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -30,6 +31,12 @@ class IncidentStatus(Model, db.Model):
     def identifier(self):
         return self.status
 
+incident_pupils = db.Table(
+    "incident_pupils",
+    db.Column("incident_id", db.Integer, db.ForeignKey("incidents.id")),
+    db.Column("pupil_id", db.Integer, db.ForeignKey("pupils.id"))
+)
+
 class Incident(Model, db.Model):
     __tablename__ = 'incidents'
 
@@ -45,8 +52,9 @@ class Incident(Model, db.Model):
     status = db.Column(db.Text, db.ForeignKey("incident_status.status"))
     action_taken = db.Column(db.Text)
     attachments = db.relationship("Attachment", backref="incident")
+    pupils = db.relationship("Pupil", secondary=incident_pupils, backref=db.backref("incidents"))
 
-    def __init__(self, one_liner, description, attachments=[], logged_on=None):
+    def __init__(self, one_liner="", description="", attachments=[], logged_on=None):
         self.one_liner = one_liner
         self.description = description
         self.attachments = attachments
@@ -63,6 +71,36 @@ class Incident(Model, db.Model):
         if self.is_concern: yield "Concern"
         if self.other_type: yield self.other_type
 
+    def numbered_pupils(self, min_number=4):
+        """Yield pupils in turn with a minimum
+
+        This is used to build a form with fields numbered pupil-1 etc.
+        """
+        n = -1
+        for n, pupil in enumerate(self.pupils):
+            yield 1 + n, pupil
+        while n < min_number - 1:
+            n += 1
+            yield 1 + n, ""
+
+def update_incident_from_request(incident=None):
+    if incident is None:
+        incident = Incident()
+    db.session.add(incident)
+    incident.one_liner = request.form.get("one_liner", "")
+    incident.description = request.form.get("description", "")
+    incident.is_incident = request.form.get("is_incident", "") == "on"
+    incident.is_racial = request.form.get("is_racial", "") == "on"
+    incident.is_bullying = request.form.get("is_bullying", "") == "on"
+    incident.is_concern = request.form.get("is_concern", "") == "on"
+    incident.other_type = request.form.get("other_type", "")
+    incident.action_taken = request.form.get("action_taken", "")
+    incident.pupils.clear()
+    pupil_names = [value for (name, value) in request.form.items() if name.startswith("pupil-") and value]
+    incident.pupils = [Pupil.query.filter_by(name=name).first() or Pupil(name=name) for name in pupil_names]
+    db.session.commit()
+    return incident.id
+
 class Attachment(Model, db.Model):
     __tablename__ = "attachments"
 
@@ -76,18 +114,11 @@ class Attachment(Model, db.Model):
             self.data = f.read()
         self.filename = os.path.basename(filepath)
 
-incident_pupils = db.Table(
-    "incident_pupils",
-    db.Column("incident_id", db.Integer, db.ForeignKey("incidents.id")),
-    db.Column("pupil_id", db.Integer, db.ForeignKey("pupils.id"))
-)
-
 class Pupil(Model, db.Model):
     __tablename__ = "pupils"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Text, unique=True)
-    incidents = db.relationship("Incident", secondary=incident_pupils, backref=db.backref("pupils"))
 
     def __init__(self, name):
         self.name = name
@@ -120,44 +151,47 @@ class Pupil(Model, db.Model):
 
 @app.route("/")
 def index():
-    return redirect("/incidents")
+    return redirect(url_for("list_incidents"))
 
 @app.route("/incidents", methods=["GET"])
-def incidents():
+def list_incidents():
     incidents = Incident.query.all()
     return render_template("incidents.html", title="Incidents", incidents=Incident.query.all())
 
 @app.route("/incident/<incident_id>", methods=["GET"])
 def show_incident(incident_id):
     incident = Incident.query.get(incident_id)
-    return render_template("show_incident.html", title="Incident %s" % incident.identifier(), incident=incident)
+    title = "%s: %s" % (incident.identifier(), incident.one_liner)
+    return render_template("show_incident.html", title=title, incident=incident)
 
-#~ @app.route("/incidents/new", methods=["GET"])
-#~ def new_incident():
-    #~ return render_template("edit_incident.html")
+@app.route("/incident/<incident_id>/edit", methods=["GET"])
+def edit_incident(incident_id):
+    incident = Incident.query.get(incident_id)
+    title = "Edit %s" % (incident.identifier())
+    return render_template("edit_incident.html", title=title, incident=incident)
 
-#~ @app.route("/incidents", methods=["POST"])
-#~ def create_incident():
-    #~ raise NotImplementedError
+@app.route("/incident/<incident_id>", methods=["POST", "PUT"])
+def update_incident(incident_id):
+    if "PUT" not in (request.method, request.form.get("_method", "")):
+        raise MethodNotAllowed(["PUT"])
+    if request.form.get("submit", "") == "Update":
+        incident = Incident.query.get(incident_id)
+        incident_id = update_incident_from_request(incident)
+    return redirect(url_for("show_incident", incident_id=incident_id), code=302)
 
-#~ @app.route("/incident/<incident_id>", methods=["GET"])
-#~ def show_incident(incident_id):
-    #~ incident = Incident.query.get(incident_id)
-    #~ return render_template("edit_incident", incident=incident)
+@app.route("/incidents/new", methods=["GET"])
+def new_incident():
+    return render_template("edit_incident.html", title="New Incident", incident=Incident())
 
-#~ @app.route("/incident/<incident_id>/edit", methods=["GET"])
-#~ def edit_incident(incident_id):
-    #~ raise NotImplementedError
+@app.route("/incidents", methods=["POST"])
+def create_incident():
+    if request.form.get("submit", "") == "Update":
+        incident_id = update_incident_from_request()
+        return redirect(url_for("show_incident", incident_id=incident_id), code=302)
+    else:
+        return redirect(url_for("list_incidents"), code=302)
 
-#~ @app.route("/incident/<incident_id>", methods=["POST", "PUT"])
-#~ def update_incident(incident_id):
-    #~ if request.method == "POST" and request.args.get("_method", "").upper() == "PUT":
-        #~ request.method = "PUT"
-    #~ else:
-        #~ raise MethodNotAllowed(["PUT"])
-    #~ raise NotImplementedError
-
-#~ @app.route("/pupils", methods=["GET"])
-#~ def pupils():
-    #~ return "Pupils"
-
+@app.route("/attachment/<attachment_id>", methods=["GET"])
+def show_attachment(attachment_id):
+    attachment = Attachment.query.get(attachment_id)
+    return send_file(io.BytesIO(attachment.data), attachment_filename=attachment.filename)

@@ -5,8 +5,12 @@
 {% endblock %}
 
 {% block body %}
+<p class="commands">
+  <a href="{{url_for('edit_incident', incident_id=incident.id)}}" class="command">Edit</a> |
+  <a href="#" class="command">Delete</a> |
+  <a href="{{url_for('list_incidents')}}" class="command">All Incidents</a>
+</p>
 <p>{{incident.logged_on}}</p>
-<p>{{incident.one_liner}}</p>
 
 <p><b>Incident Types:</b>&nbsp;
 {% for incident_type in incident.types() %}
@@ -14,7 +18,7 @@
 {% endfor %}
 </ul>
 
-<h2>Pupils involved</h2>
+<p><b>Pupils involved:</b></p>
 <ul>
 {% for pupil in incident.pupils %}
 <li>{{pupil.name}}</li>
@@ -24,10 +28,10 @@
 <h2>Summary</h2>
 <p>{{incident.description}}</p>
 <h3>Statements:</h3>
-{% if incident.statements %}
+{% if incident.attachments %}
 <ul>
 {% for statement in incident.attachments %}
-<li>statement.filename</li>
+<li><a href="/attachment/{{statement.id}}">{{statement.filename}}</a></li>
 {% endfor %}
 </ul>
 {% else %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block head %}
+<link href="{{url_for('static', filename='css/incident.css')}}" rel="stylesheet" type="text/css">
+<link href="{{url_for('static', filename='css/form.css')}}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+
+{% if incident.id %}
+  <form method="POST" action="{{url_for('update_incident', incident_id=incident.id)}}">
+  <input type="hidden" name="_method" value="PUT" />
+{% else %}
+  <form method="POST" action="{{url_for('create_incident')}}">
+{% endif %}
+<p><input type="submit" name="submit" value="Update"><input type="submit" name="submit" value="Cancel"></p>
+
+<p>
+  <label for="one-liner">Brief Description</label>
+  <input id="one-liner" name="one_liner" type="text" size="100" value="{{incident.one_liner}}"/>
+</p>
+
+<p>
+  <label for="description">Description</label><br/>
+  <textarea id="description" name="description" rows="10" cols="100">{{incident.description}}</textarea>
+</p>
+
+<div class="left half">
+  <fieldset>
+    <legend>Incident Types</legend>
+    <p><input type="checkbox" id="is-incident" name="is_incident" {{'CHECKED' if incident.is_incident}}><label for="is-incident">Incident</label></p>
+    <p><input type="checkbox" id="is-racial" name="is_racial" {{'CHECKED' if incident.is_racial}}><label for="is-racial">Racial</label></p>
+    <p><input type="checkbox" id="is-bullying" name="is_bullying" {{'CHECKED' if incident.is_bullying}}><label for="is-bullying">Bullying</label></p>
+    <p><input type="checkbox" id="is-concern" name="is_concern" {{'CHECKED' if incident.is_concern}}><label for="is-concern">Concern</label></p>
+    <p><label for="other-type">Other Type:</label> <input id="other-type" name="other_type" type="text" value="{{incident.other_type}}"/></p>
+  </fieldset>
+</div>
+
+<div class="right half">
+  <fieldset>
+    <legend>Pupils involved</legend>
+    {% for (n, pupil) in incident.numbered_pupils() %}
+    <p><label for="pupil-{{n}}">Pupil {{n}}:</label><input id="pupil-{{n}}" name="pupil-{{n}}" type="text" size="40" value="{{pupil.name}}"/>
+    {% endfor %}
+  </fieldset>
+</div>
+
+<p>
+  <label for="action-taken">Action Taken</label><br/>
+  <textarea id="action-taken" name="action_taken" rows="10" cols="100">{{incident.action_taken}}</textarea>
+</p>
+
+<p><input type="submit" name="submit" value="Update"><input type="submit" name="submit" value="Cancel"></p>
+</form>
+
+{% endblock %}

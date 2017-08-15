@@ -6,3 +6,6 @@
 </select>
 {% endmacro %}
 
+{% macro checkbox(label, name, is_checked) %}
+<input type="checkbox" id="{{name}}" name="{{name}}" {{'CHECKED' if is_checked}}/>
+{% endmacro %}
