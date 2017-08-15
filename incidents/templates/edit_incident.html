@@ -39,10 +39,10 @@
 <div class="right half">
   <fieldset>
     <legend>Pupils involved</legend>
-    {% for (n, pupil) in incident.numbered_pupils() %}
+    {% for (n, pupil_name, has_statement) in incident.numbered_pupils() %}
     <p>
-      <label for="pupil-{{n}}">Pupil {{n}}:</label><input id="pupil-{{n}}" name="pupil-{{n}}" type="text" size="40" value="{{pupil.name}}"/>
-      <input type="file" class="statement" id="statement-{{n}}" name="statement-{{n}}" size="80" maxlength="240" />
+      <label for="pupil-{{n}}">Pupil {{n}}:</label><input id="pupil-{{n}}" name="pupil-{{n}}" type="text" size="40" value="{{pupil_name}}"/>
+      {% if not has_statement %}<input type="file" class="statement" id="statement-{{n}}" name="statement-{{n}}" size="80" maxlength="240" />{% endif %}
     </p>
     {% endfor %}
 

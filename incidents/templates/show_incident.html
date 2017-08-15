@@ -19,25 +19,15 @@
 
 <p><b>Pupils involved:</b></p>
 <ul>
-{% for pupil, statement in incident.pupil_statements() %}
+{% for pupil, has_statement in incident.pupil_statements() %}
 <li>
-  {{pupil.name}} {% if statement %} - <a href="{{url_for('show_attachment', attachment_id=statement.id)}}">{{statement.filename}}</a>{% endif %}
+  {{pupil.name}} {% if has_statement %} - <a href="{{url_for('show_statement', incident_id=incident.id, pupil_id=pupil.id)}}">View Statement</a>{% endif %}
 </li>
 {% endfor %}
 </ul>
 
 <h2>Summary</h2>
 <p>{{incident.description}}</p>
-<h3>Statements:</h3>
-{% if incident.attachments %}
-<ul>
-{% for statement in incident.attachments %}
-<li><a href="/attachment/{{statement.id}}">{{statement.filename}}</a></li>
-{% endfor %}
-</ul>
-{% else %}
-<p><i>No statements included</i></p>
-{% endif %}
 
 <h2>Action taken</h2>
 {% if incident.action_taken %}

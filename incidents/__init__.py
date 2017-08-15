@@ -35,16 +35,16 @@ class Incident(Model, db.Model):
     __tablename__ = 'incidents'
 
     id = db.Column(db.Integer, primary_key=True)
-    one_liner = db.Column(db.Text)
-    description = db.Column(db.Text)
-    is_incident = db.Column(db.Boolean)
-    is_racial = db.Column(db.Boolean)
-    is_bullying = db.Column(db.Boolean)
-    is_concern = db.Column(db.Boolean)
-    other_type = db.Column(db.Text)
+    one_liner = db.Column(db.Text, default="")
+    description = db.Column(db.Text, default="")
+    is_incident = db.Column(db.Boolean, default=0)
+    is_racial = db.Column(db.Boolean, default=0)
+    is_bullying = db.Column(db.Boolean, default=0)
+    is_concern = db.Column(db.Boolean, default=0)
+    other_type = db.Column(db.Text, default="")
     logged_on = db.Column(db.Date)
     status = db.Column(db.Text, db.ForeignKey("incident_status.status"))
-    action_taken = db.Column(db.Text)
+    action_taken = db.Column(db.Text, default="")
     pupils = db.relationship("Pupil", secondary="incident_pupils")
 
     def __init__(self, one_liner="", description="", attachments=[], logged_on=None):
@@ -70,15 +70,15 @@ class Incident(Model, db.Model):
         This is used to build a form with fields numbered pupil-1 etc.
         """
         n = -1
-        for n, pupil in enumerate(self.pupils):
-            yield 1 + n, pupil
+        for n, pupil_statement in enumerate(IncidentPupil.query.filter_by(incident_id=self.id)):
+            yield 1 + n, pupil_statement.pupil.name, bool(pupil_statement.statement_data)
         while n < min_number - 1:
             n += 1
-            yield 1 + n, ""
+            yield 1 + n, "", 0
 
     def pupil_statements(self):
         for pupil_statement in IncidentPupil.query.filter_by(incident_id=self.id):
-            yield pupil_statement.pupil, pupil_statement.statement
+            yield pupil_statement.pupil, bool(pupil_statement.statement_data)
 
 class Attachment(Model, db.Model):
     __tablename__ = "attachments"
@@ -135,14 +135,14 @@ class IncidentPupil(Model, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     incident_id = db.Column(db.Integer, db.ForeignKey("incidents.id"), nullable=False)
     pupil_id = db.Column(db.Integer, db.ForeignKey("pupils.id"), nullable=False)
-    statement_id = db.Column(db.Integer, db.ForeignKey("attachments.id"), nullable=True)
+    statement_filename = db.Column(db.Text)
+    statement_data = db.Column(db.Binary)
 
     incident = db.relationship(Incident)
     pupil = db.relationship(Pupil)
-    statement = db.relationship(Attachment)
 
     def __repr__(self):
-        return "IncidentPupil: %s - %s - %s" % (self.pupil.name, self.incident.identifier(), self.statement or "(No statement)")
+        return "IncidentPupil: %s - %s - %s" % (self.pupil.name, self.incident.identifier(), self.statement_filename or "(No statement)")
 
 def update_incident_from_request(incident=None):
     if incident is None:
@@ -157,19 +157,36 @@ def update_incident_from_request(incident=None):
     incident.other_type = request.form.get("other_type", "")
     incident.action_taken = request.form.get("action_taken", "")
 
-    incident.pupils.clear()
+    #
+    # Compare which pupils are currently linked to the incident
+    # Retain those which are still listed, possibly plus a new statement
+    # Remove any which are no longer listed
+    #
+    current_pupils = dict(
+        (ip.pupil.name, ip)
+            for ip in IncidentPupil.query.filter_by(incident_id=incident.id)
+    )
     for i in range(1, 5):
         pupil_field = "pupil-%d" % i
-        if pupil_field in request.form:
-            pupil_name = request.form[pupil_field]
-            if not pupil_name: continue
+        statement_field = "statement-%d" % i
+        pupil_name = request.form.get(pupil_field)
+        if not pupil_name: continue
+
+        if pupil_name in current_pupils:
+            incident_pupil = current_pupils.pop(pupil_name)
+        else:
             pupil = Pupil.query.filter_by(name=pupil_name).first() or Pupil(name=pupil_name)
-            statement_field = "statement-%d" % i
-            if statement_field in request.files and request.files[statement_field].filename:
-                statement = Attachment(request.files[statement_field])
-            else:
-                statement = None
-            db.session.add(IncidentPupil(incident=incident, pupil=pupil, statement=statement))
+            incident_pupil = IncidentPupil(incident=incident, pupil=pupil)
+
+        statement_file = request.files.get(statement_field)
+        if statement_file and statement_file.filename:
+            incident_pupil.statement_filename = statement_file.filename
+            incident_pupil.statement_data = statement_file.read()
+
+        db.session.add(incident_pupil)
+
+    for orphaned in current_pupils.values():
+        db.session.delete(orphaned)
 
     db.session.commit()
     return incident.id
@@ -220,3 +237,11 @@ def create_incident():
 def show_attachment(attachment_id):
     attachment = Attachment.query.get(attachment_id)
     return send_file(io.BytesIO(attachment.data), attachment_filename=attachment.filename)
+
+@app.route("/incident/<incident_id>/pupil/<pupil_id>/statement", methods=["GET"])
+def show_statement(incident_id, pupil_id):
+    incident_pupil = IncidentPupil.query.filter_by(incident_id=incident_id, pupil_id=pupil_id).first()
+    return send_file(
+        io.BytesIO(incident_pupil.statement_data),
+        attachment_filename=incident_pupil.statement_filename
+    )
