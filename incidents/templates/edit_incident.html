@@ -8,10 +8,10 @@
 {% block body %}
 
 {% if incident.id %}
-  <form method="POST" action="{{url_for('update_incident', incident_id=incident.id)}}">
+  <form method="POST" action="{{url_for('update_incident', incident_id=incident.id)}}" enctype="multipart/form-data">
   <input type="hidden" name="_method" value="PUT" />
 {% else %}
-  <form method="POST" action="{{url_for('create_incident')}}">
+  <form method="POST" action="{{url_for('create_incident')}}" enctype="multipart/form-data">
 {% endif %}
 <p><input type="submit" name="submit" value="Update"><input type="submit" name="submit" value="Cancel"></p>
 
@@ -40,9 +40,13 @@
   <fieldset>
     <legend>Pupils involved</legend>
     {% for (n, pupil) in incident.numbered_pupils() %}
-    <p><label for="pupil-{{n}}">Pupil {{n}}:</label><input id="pupil-{{n}}" name="pupil-{{n}}" type="text" size="40" value="{{pupil.name}}"/>
+    <p>
+      <label for="pupil-{{n}}">Pupil {{n}}:</label><input id="pupil-{{n}}" name="pupil-{{n}}" type="text" size="40" value="{{pupil.name}}"/>
+      <input type="file" class="statement" id="statement-{{n}}" name="statement-{{n}}" size="80" maxlength="240" />
+    </p>
     {% endfor %}
-  </fieldset>
+
+</fieldset>
 </div>
 
 <p>

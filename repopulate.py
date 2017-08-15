@@ -31,7 +31,7 @@ if __name__ == '__main__':
     i2.status = "Closed"
     chris = Pupil.query.filter_by(name="Chris Doran").first()
     i2.pupils = [chris]
-    i2.attachments = [Attachment("misc/example.pdf")]
+    #~ i2.attachments = [Attachment("misc/example.pdf")]
     i2.is_bullying = 1
     db.session.add(i2)
 

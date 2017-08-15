@@ -31,12 +31,6 @@ class IncidentStatus(Model, db.Model):
     def identifier(self):
         return self.status
 
-incident_pupils = db.Table(
-    "incident_pupils",
-    db.Column("incident_id", db.Integer, db.ForeignKey("incidents.id")),
-    db.Column("pupil_id", db.Integer, db.ForeignKey("pupils.id"))
-)
-
 class Incident(Model, db.Model):
     __tablename__ = 'incidents'
 
@@ -51,8 +45,7 @@ class Incident(Model, db.Model):
     logged_on = db.Column(db.Date)
     status = db.Column(db.Text, db.ForeignKey("incident_status.status"))
     action_taken = db.Column(db.Text)
-    attachments = db.relationship("Attachment", backref="incident")
-    pupils = db.relationship("Pupil", secondary=incident_pupils, backref=db.backref("incidents"))
+    pupils = db.relationship("Pupil", secondary="incident_pupils")
 
     def __init__(self, one_liner="", description="", attachments=[], logged_on=None):
         self.one_liner = one_liner
@@ -83,23 +76,9 @@ class Incident(Model, db.Model):
             n += 1
             yield 1 + n, ""
 
-def update_incident_from_request(incident=None):
-    if incident is None:
-        incident = Incident()
-    db.session.add(incident)
-    incident.one_liner = request.form.get("one_liner", "")
-    incident.description = request.form.get("description", "")
-    incident.is_incident = request.form.get("is_incident", "") == "on"
-    incident.is_racial = request.form.get("is_racial", "") == "on"
-    incident.is_bullying = request.form.get("is_bullying", "") == "on"
-    incident.is_concern = request.form.get("is_concern", "") == "on"
-    incident.other_type = request.form.get("other_type", "")
-    incident.action_taken = request.form.get("action_taken", "")
-    incident.pupils.clear()
-    pupil_names = [value for (name, value) in request.form.items() if name.startswith("pupil-") and value]
-    incident.pupils = [Pupil.query.filter_by(name=name).first() or Pupil(name=name) for name in pupil_names]
-    db.session.commit()
-    return incident.id
+    def pupil_statements(self):
+        for pupil_statement in IncidentPupil.query.filter_by(incident_id=self.id):
+            yield pupil_statement.pupil, pupil_statement.statement
 
 class Attachment(Model, db.Model):
     __tablename__ = "attachments"
@@ -107,12 +86,13 @@ class Attachment(Model, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.Text)
     data = db.Column(db.Binary)
-    incident_id = db.Column(db.Integer, db.ForeignKey("incidents.id"))
 
-    def __init__(self, filepath):
-        with open(filepath, "rb") as f:
-            self.data = f.read()
-        self.filename = os.path.basename(filepath)
+    def __init__(self, file_object):
+        self.filename = os.path.basename(file_object.filename)
+        self.data = file_object.read()
+
+    def identifier(self):
+        return self.filename
 
 class Pupil(Model, db.Model):
     __tablename__ = "pupils"
@@ -148,6 +128,51 @@ class Pupil(Model, db.Model):
 
     def identifier(self):
         return self.name
+
+class IncidentPupil(Model, db.Model):
+    __tablename__ = "incident_pupils"
+
+    id = db.Column(db.Integer, primary_key=True)
+    incident_id = db.Column(db.Integer, db.ForeignKey("incidents.id"), nullable=False)
+    pupil_id = db.Column(db.Integer, db.ForeignKey("pupils.id"), nullable=False)
+    statement_id = db.Column(db.Integer, db.ForeignKey("attachments.id"), nullable=True)
+
+    incident = db.relationship(Incident)
+    pupil = db.relationship(Pupil)
+    statement = db.relationship(Attachment)
+
+    def __repr__(self):
+        return "IncidentPupil: %s - %s - %s" % (self.pupil.name, self.incident.identifier(), self.statement or "(No statement)")
+
+def update_incident_from_request(incident=None):
+    if incident is None:
+        incident = Incident()
+    db.session.add(incident)
+    incident.one_liner = request.form.get("one_liner", "")
+    incident.description = request.form.get("description", "")
+    incident.is_incident = request.form.get("is_incident", "") == "on"
+    incident.is_racial = request.form.get("is_racial", "") == "on"
+    incident.is_bullying = request.form.get("is_bullying", "") == "on"
+    incident.is_concern = request.form.get("is_concern", "") == "on"
+    incident.other_type = request.form.get("other_type", "")
+    incident.action_taken = request.form.get("action_taken", "")
+
+    incident.pupils.clear()
+    for i in range(1, 5):
+        pupil_field = "pupil-%d" % i
+        if pupil_field in request.form:
+            pupil_name = request.form[pupil_field]
+            if not pupil_name: continue
+            pupil = Pupil.query.filter_by(name=pupil_name).first() or Pupil(name=pupil_name)
+            statement_field = "statement-%d" % i
+            if statement_field in request.files and request.files[statement_field].filename:
+                statement = Attachment(request.files[statement_field])
+            else:
+                statement = None
+            db.session.add(IncidentPupil(incident=incident, pupil=pupil, statement=statement))
+
+    db.session.commit()
+    return incident.id
 
 @app.route("/")
 def index():

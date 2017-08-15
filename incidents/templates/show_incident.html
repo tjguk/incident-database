@@ -7,7 +7,6 @@
 {% block body %}
 <p class="commands">
   <a href="{{url_for('edit_incident', incident_id=incident.id)}}" class="command">Edit</a> |
-  <a href="#" class="command">Delete</a> |
   <a href="{{url_for('list_incidents')}}" class="command">All Incidents</a>
 </p>
 <p>{{incident.logged_on}}</p>
@@ -20,8 +19,10 @@
 
 <p><b>Pupils involved:</b></p>
 <ul>
-{% for pupil in incident.pupils %}
-<li>{{pupil.name}}</li>
+{% for pupil, statement in incident.pupil_statements() %}
+<li>
+  {{pupil.name}} {% if statement %} - <a href="{{url_for('show_attachment', attachment_id=statement.id)}}">{{statement.filename}}</a>{% endif %}
+</li>
 {% endfor %}
 </ul>
 
