@@ -1,5 +1,6 @@
 import os, sys
 import logging
+import re
 
 logger = logging.getLogger(__package__)
 
@@ -14,7 +15,7 @@ def cells_in_range(range):
         for cell in row:
             yield cell
 
-def xlsx(data_iterator, spreadsheet_filepath, optimised=False, callback=None):
+def xlsx(data_iterator, spreadsheet_filepath, callback=None):
     """xlsx - put a dataset to an xlsx spreadsheet
 
     Parameters:
@@ -23,7 +24,7 @@ def xlsx(data_iterator, spreadsheet_filepath, optimised=False, callback=None):
     """
     ROWSET_SIZE = 1000
 
-    wb = openpyxl.Workbook(optimized_write=optimised)
+    wb = openpyxl.Workbook()
     for sheet in list(wb.worksheets):
         wb.remove_sheet(sheet)
 
@@ -38,35 +39,28 @@ def xlsx(data_iterator, spreadsheet_filepath, optimised=False, callback=None):
         else:
             sheet_name = u"Sheet %d" % n_sheet
         ws = wb.create_sheet(title=sheet_name)
-        ws.set_printer_settings("A4", ws.ORIENTATION_LANDSCAPE)
-        yield "%s... " % sheet_name
+        ws.set_printer_settings(ws.PAPERSIZE_A4, ws.ORIENTATION_LANDSCAPE)
 
         #
         # Write a single row containing the headers
         # Make the headers bold and freeze panes below that row
         #
         header_names = [name for name, type in headers]
-        if optimised:
-            ws.append(header_names)
-        else:
-            header_range = ws.range("A1:%s" % ws.cell(row=0, column=len(header_names)-1).get_coordinate())
-            for cell, header_name in zip(cells_in_range(header_range), header_names):
-                cell.value = header_name
-                cell.style.font.bold = True
-                cell.style.fill.fill_type = openpyxl.style.Fill.FILL_SOLID
-                cell.style.fill.start_color.index = "ffffff80"
-            ws.freeze_panes = "A2"
-        yield "%s headers..." % sheet_name
+        header_range = ws["A1:%s" % ws.cell(row=1, column=len(header_names)).coordinate]
+        for cell, header_name in zip(cells_in_range(header_range), header_names):
+            cell.value = header_name
+            cell.font = openpyxl.styles.Font(bold=True)
+            cell.fill = openpyxl.styles.PatternFill(
+                fill_type=openpyxl.styles.fills.FILL_SOLID,
+                start_color = "ffffff80"
+            )
+        ws.freeze_panes = "A2"
 
         #
         # Append each row to the bottom of the sheet
         #
-        n_row = 0
-        for n_row, row in enumerate(rowset):
-            if (1 + n_row) % ROWSET_SIZE == 0:
-                yield "%s row %d" % (sheet_name, n_row)
+        for row in rowset:
             ws.append(list(row))
-        yield "%s %d rows" % (sheet_name,  n_row)
 
     if callback:
         wb = callback(wb)

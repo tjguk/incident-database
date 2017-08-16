@@ -1,9 +1,13 @@
 import os, sys
 import datetime
 import io
+import re
+import tempfile
 
 from flask import Flask, redirect, render_template, send_file, request, url_for
 from flask_sqlalchemy import SQLAlchemy
+
+from .lib import xlsxlib
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///incidents.db'
@@ -47,12 +51,14 @@ class Incident(Model, db.Model):
     action_taken = db.Column(db.Text, default="")
     pupils = db.relationship("Pupil", secondary="incident_pupils")
 
-    def __init__(self, one_liner="", description="", attachments=[], logged_on=None):
+    def __init__(self, one_liner="", description="", logged_on=None):
         self.one_liner = one_liner
         self.description = description
-        self.attachments = attachments
+        self.is_incident = self.is_racial = self.is_bullying = self.is_concern = 0
+        self.other_type = ""
         self.logged_on = logged_on or datetime.date.today()
         self.status = "Open"
+        self.action_taken = ""
 
     def identifier(self):
         return "INC-%04d" % self.id
@@ -192,6 +198,24 @@ def update_incident_from_request(incident=None):
     db.session.commit()
     return incident.id
 
+def highlight_incidents(wb):
+    for ws in wb:
+        for cell in ws.get_cell_collection():
+            if cell.data_type == "s" and re.match(r"INC-\d{4}$", cell.value):
+                _, incident_id = cell.value.split("-")
+                cell.hyperlink = url_for("show_incident", incident_id=int(incident_id), _external=True)
+                cell.style = "Hyperlink"
+    return wb
+
+def incidents_as_excel(incidents):
+    headers = [(name, str) for name in ("Incident", "Status", "Summary", "Pupils")]
+    rows = []
+    for incident in incidents:
+        rows.append((incident.identifier(), incident.status, incident.one_liner, ", ".join(pupil.name for pupil in incident.pupils)))
+    filepath = tempfile.mktemp(".xlsx")
+    xlsxlib.xlsx([["Incidents", headers, rows]], filepath, callback=highlight_incidents)
+    return filepath
+
 @app.route("/")
 def index():
     return redirect(url_for("list_incidents"))
@@ -200,6 +224,12 @@ def index():
 def list_incidents():
     incidents = Incident.query.all()
     return render_template("incidents.html", title="Incidents", incidents=Incident.query.all())
+
+@app.route("/export_incidents", methods=["GET"])
+def export_incidents():
+    incidents = Incident.query.all()
+    filepath = incidents_as_excel(incidents)
+    return send_file(filepath, as_attachment=True, cache_timeout=-1)
 
 @app.route("/incident/<incident_id>", methods=["GET"])
 def show_incident(incident_id):
