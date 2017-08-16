@@ -205,7 +205,7 @@ def list_incidents():
 def show_incident(incident_id):
     incident = Incident.query.get(incident_id)
     title = "%s: %s" % (incident.identifier(), incident.one_liner)
-    return render_template("show_incident.html", title=title, incident=incident)
+    return render_template("incident.html", title=title, incident=incident)
 
 @app.route("/incident/<incident_id>/pupil/<pupil_id>/statement", methods=["GET"])
 def show_statement(incident_id, pupil_id):
