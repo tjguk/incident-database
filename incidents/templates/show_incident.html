@@ -9,7 +9,7 @@
   <a href="{{url_for('edit_incident', incident_id=incident.id)}}" class="command">Edit</a> |
   <a href="{{url_for('list_incidents')}}" class="command">All Incidents</a>
 </p>
-<p>{{incident.logged_on}}</p>
+<p><label>Logged on:</label> {{incident.logged_on}}</p>
 
 <p><b>Incident Types:</b>&nbsp;
 {% for incident_type in incident.types() %}

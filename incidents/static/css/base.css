@@ -27,3 +27,7 @@ div.right {
 hr {
   clear : both;
 }
+label, span.label {
+  font-weight : bold;
+  margin-right : 0.25em;
+}

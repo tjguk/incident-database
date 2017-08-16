@@ -135,14 +135,14 @@ class IncidentPupil(Model, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     incident_id = db.Column(db.Integer, db.ForeignKey("incidents.id"), nullable=False)
     pupil_id = db.Column(db.Integer, db.ForeignKey("pupils.id"), nullable=False)
-    statement_filename = db.Column(db.Text)
+    statement_ext = db.Column(db.Text)
     statement_data = db.Column(db.Binary)
 
     incident = db.relationship(Incident)
     pupil = db.relationship(Pupil)
 
     def __repr__(self):
-        return "IncidentPupil: %s - %s - %s" % (self.pupil.name, self.incident.identifier(), self.statement_filename or "(No statement)")
+        return "IncidentPupil: %s - %s - %s" % (self.pupil.name, self.incident.identifier(), self.statement_ext or "(No statement)")
 
 def update_incident_from_request(incident=None):
     if incident is None:
@@ -180,7 +180,8 @@ def update_incident_from_request(incident=None):
 
         statement_file = request.files.get(statement_field)
         if statement_file and statement_file.filename:
-            incident_pupil.statement_filename = statement_file.filename
+            _, ext = os.path.splitext(statement_file.filename)
+            incident_pupil.statement_ext = ext
             incident_pupil.statement_data = statement_file.read()
 
         db.session.add(incident_pupil)
@@ -205,6 +206,15 @@ def show_incident(incident_id):
     incident = Incident.query.get(incident_id)
     title = "%s: %s" % (incident.identifier(), incident.one_liner)
     return render_template("show_incident.html", title=title, incident=incident)
+
+@app.route("/incident/<incident_id>/pupil/<pupil_id>/statement", methods=["GET"])
+def show_statement(incident_id, pupil_id):
+    incident_pupil = IncidentPupil.query.filter_by(incident_id=incident_id, pupil_id=pupil_id).first()
+    filename = "%05d%s" % (incident_pupil.id, incident_pupil.statement_ext)
+    return send_file(
+        io.BytesIO(incident_pupil.statement_data),
+        as_attachment=True, attachment_filename=filename
+    )
 
 @app.route("/incident/<incident_id>/edit", methods=["GET"])
 def edit_incident(incident_id):
@@ -238,10 +248,3 @@ def show_attachment(attachment_id):
     attachment = Attachment.query.get(attachment_id)
     return send_file(io.BytesIO(attachment.data), attachment_filename=attachment.filename)
 
-@app.route("/incident/<incident_id>/pupil/<pupil_id>/statement", methods=["GET"])
-def show_statement(incident_id, pupil_id):
-    incident_pupil = IncidentPupil.query.filter_by(incident_id=incident_id, pupil_id=pupil_id).first()
-    return send_file(
-        io.BytesIO(incident_pupil.statement_data),
-        attachment_filename=incident_pupil.statement_filename
-    )

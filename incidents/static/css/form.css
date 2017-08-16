@@ -2,10 +2,6 @@
 Try to ensure that all labels / fields line up
 nicely within a form, possibly within a div
 */
-label, span.label {
-  font-weight : bold;
-  margin-right : 0.25em;
-}
 form div {
   width : 100%;
   padding : 0;
