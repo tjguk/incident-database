@@ -216,9 +216,20 @@ def incidents_as_excel(incidents):
     xlsxlib.xlsx([["Incidents", headers, rows]], filepath, callback=highlight_incidents)
     return filepath
 
+def shutdown_server():
+    func = request.environ.get('werkzeug.server.shutdown')
+    if func is None:
+        raise RuntimeError('Not running with the Werkzeug Server')
+    func()
+
 @app.route("/")
 def index():
     return redirect(url_for("list_incidents"))
+
+@app.route("/finish")
+def finish():
+    shutdown_server()
+    return "Shutting down..."
 
 @app.route("/incidents", methods=["GET"])
 def list_incidents():
