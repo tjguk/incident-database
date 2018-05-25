@@ -6,7 +6,7 @@ import win32con
 import win32console
 import win32gui
 
-from incidents import app
+from incidents import app, initialise_database
 
 HOST = "localhost"
 PORT = 5010
@@ -15,7 +15,7 @@ def run_browser():
     os.startfile("http://%s:%d" % (HOST, PORT))
 
 if __name__ == '__main__':
-    import threading
+    initialise_database()
     threading.Timer(3.0, run_browser).start()
     #
     # If there's no instance of this app currently running, start it up

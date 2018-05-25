@@ -9,10 +9,26 @@ from flask_sqlalchemy import SQLAlchemy
 
 from .lib import xlsxlib
 
+if getattr(sys, "frozen", False):
+    dirpath = os.path.dirname(sys.executable)
+else:
+    dirpath = os.path.dirname(os.path.abspath(__file__))
+
+DATABASE_FILEPATH = os.path.join(dirpath, "incidents.db")
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///incidents.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + DATABASE_FILEPATH
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+def initialise_database():
+    if os.path.exists(DATABASE_FILEPATH):
+        print("Database already exists at", DATABASE_FILEPATH, "; skipping...")
+    else:
+        print("Creating database at", DATABASE_FILEPATH)
+        db.create_all()
+        db.session.add(IncidentStatus("Open", 1))
+        db.session.add(IncidentStatus("Pending", 2))
+        db.session.add(IncidentStatus("Closed", 3))
 
 class Model(object):
 
@@ -206,6 +222,12 @@ def highlight_incidents(wb):
                 cell.hyperlink = url_for("show_incident", incident_id=int(incident_id), _external=True)
                 cell.style = "Hyperlink"
     return wb
+
+def request_wants_json():
+    best = request.accept_mimetypes.best_match(['application/json', 'text/html'])
+    return best == 'application/json' and \
+        request.accept_mimetypes[best] > \
+        request.accept_mimetypes['text/html']
 
 def incidents_as_excel(incidents):
     headers = [(name, str) for name in ("Incident", "Status", "Summary", "Pupils")]

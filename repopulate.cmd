@@ -1,2 +1,2 @@
-CALL "%VENVS%\incidents\Scripts\activate.bat"
+CALL "%VENVS%\incidents34\Scripts\activate.bat"
 python repopulate.py
